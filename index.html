@@ -85,7 +85,7 @@
     </div>
 
     <script>
-        async function performSearch() {
+async function performSearch() {
     const query = document.getElementById('searchInput').value;
     const grid = document.getElementById('resultsGrid');
     const btn = document.getElementById('searchBtn');
@@ -104,21 +104,21 @@
         if (data.result && data.result.scripts.length > 0) {
             data.result.scripts.forEach((script, index) => {
                 
-                // --- แก้ไขเรื่องรูป (ใช้ Proxy ตัวใหม่ที่เสถียรขึ้น) ---
+                // --- ระบบดึงรูปผ่าน Proxy (ตัวอัปเดต) ---
                 const rawImage = script.game && script.game.image ? script.game.image : '';
-                // ใช้ Proxy ของ Google ช่วยดึงรูป (ตัวนี้ตายยากที่สุดครับ)
                 const proxiedThumb = rawImage 
-                    ? `https://www.google.com/proxy?url=https://scriptblox.com${rawImage}` 
+                    ? `https://images.weserv.nl/?url=https://scriptblox.com${rawImage}&w=500&h=280&fit=cover&output=webp` 
                     : 'https://via.placeholder.com/500x280/0a0a0a/333?text=NO+IMAGE';
 
-                // เช็กว่ามีโค้ดให้ก๊อปไหม
-                const hasCode = (script.content && script.content !== "undefined" && script.content.length > 5);
+                // --- แก้ไขตรงนี้: ดึงข้อมูล Loadstring จาก Raw Content ---
+                // ปกติข้อมูลใน 'script.content' จะตรงกับใน View Raw ของเว็บ
+                const scriptCode = script.content || "";
+                const hasCode = (scriptCode.trim().length > 0 && scriptCode !== "undefined");
 
                 const card = `
                     <div class="glass-card p-5 flex flex-col gap-5 opacity-0 translate-y-4" id="card-${index}">
                         <div class="relative rounded-2xl overflow-hidden aspect-video bg-zinc-900 border border-white/5">
                             <img src="${proxiedThumb}" onerror="this.src='https://via.placeholder.com/500x280/111/333?text=IMAGE+ERROR'" class="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity duration-700">
-                            
                             <div class="absolute top-4 right-4 text-[8px] font-black px-3 py-1 rounded-lg tracking-tighter shadow-2xl ${script.isPatched ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30'}">
                                 ${script.isPatched ? 'PATCHED' : 'WORKING'}
                             </div>
@@ -131,8 +131,8 @@
 
                         <div class="flex gap-3 mt-auto">
                             ${hasCode ? 
-                                `<button onclick="copyToClipboard('${encodeURIComponent(script.content)}', this)" class="flex-1 bg-zinc-900 text-zinc-300 border border-white/5 py-4 rounded-xl text-[9px] font-black uppercase hover:bg-zinc-800 transition-all">Copy Code</button>` :
-                                `<button onclick="window.open('https://scriptblox.com/script/${script.slug}', '_blank')" class="flex-1 bg-zinc-900/50 text-zinc-500 border border-white/5 py-4 rounded-xl text-[9px] font-black uppercase hover:bg-zinc-800 transition-all italic">No Loadstring</button>`
+                                `<button onclick="copyToClipboard('${encodeURIComponent(scriptCode)}', this)" class="flex-1 bg-zinc-900 text-zinc-300 border border-white/5 py-4 rounded-xl text-[9px] font-black uppercase hover:bg-zinc-800 transition-all">Copy Code</button>` :
+                                `<button onclick="window.open('https://scriptblox.com/script/${script.slug}', '_blank')" class="flex-1 bg-zinc-900/50 text-zinc-600 border border-white/5 py-4 rounded-xl text-[9px] font-black uppercase italic">View Raw on Web</button>`
                             }
                             <button onclick="window.open('https://scriptblox.com/script/${script.slug}', '_blank')" class="bg-white text-black px-6 py-4 rounded-xl text-[9px] font-black uppercase hover:bg-zinc-200 transition-all">View</button>
                         </div>
@@ -155,7 +155,6 @@
         btn.innerHTML = 'Search';
     }
  }
-
         // ระบบ Copy พร้อม Fallback สำหรับทุกเครื่อง
         function copyToClipboard(encodedCode, btn) {
             const code = decodeURIComponent(encodedCode);
