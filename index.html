@@ -3,69 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RETH BYPASS TESTER</title>
+    <title>RETH BYPASS - READY TO USE</title>
     <style>
-        body {
-            background-color: #0a0a0a;
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .container {
-            background: rgba(20, 20, 20, 0.9);
-            padding: 40px;
-            border-radius: 15px;
-            border: 1px solid #333;
-            width: 100%;
-            max-width: 500px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        h1 { font-weight: 800; letter-spacing: 2px; margin-bottom: 20px; }
-
-        input {
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 15px;
-            background: #151515;
-            border: 1px solid #444;
-            color: white;
-            border-radius: 8px;
-            box-sizing: border-box;
-            outline: none;
-        }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            background: white;
-            color: black;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:hover { background: #ccc; }
-
-        #result-box {
-            margin-top: 20px;
-            padding: 15px;
-            background: #000;
-            border: 1px dashed #555;
-            min-height: 50px;
-            word-break: break-all;
-            color: #aaa;
-            font-size: 14px;
-        }
-
+        body { background-color: #0a0a0a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: #141414; padding: 30px; border-radius: 12px; border: 1px solid #333; width: 400px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #1a1a1a; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: white; color: black; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        #result { margin-top: 20px; padding: 15px; background: #000; border: 1px dashed #444; min-height: 40px; font-size: 13px; word-break: break-all; }
         .success { color: #00ff88; }
         .error { color: #ff4444; }
     </style>
@@ -73,53 +17,48 @@
 <body>
 
 <div class="container">
-    <h1>RETH BYPASS</h1>
+    <h2>RETH BYPASS</h2>
+    <p style="font-size: 12px; color: #888;">Key is already embedded (Bacon-dcf...)</p>
     
-    <input type="text" id="apiKey" placeholder="ใส่ api ตรงนี้">
-    
-    <input type="text" id="targetUrl" placeholder="Paste linkvertise / key link here...">
-    
-    <button onclick="testBypass()">BYPASS NOW</button>
+    <input type="text" id="targetUrl" placeholder="วางลิงก์ Linkvertise ที่นี่...">
+    <button onclick="runBypass()">BYPASS NOW</button>
 
-    <div id="result-box">
-        Waiting for decryption request...
-    </div>
+    <div id="result">ระบบพร้อมใช้งาน...</div>
 </div>
 
 <script>
-async function testBypass() {
-    const apiKey = document.getElementById('apiKey').value;
+async function runBypass() {
     const targetUrl = document.getElementById('targetUrl').value;
-    const resultBox = document.getElementById('result-box');
+    const resultBox = document.getElementById('result');
 
-    if (!apiKey || !targetUrl) {
-        resultBox.innerText = "Error: กรุณาใส่ข้อมูลให้ครบ";
-        resultBox.className = "error";
+    if (!targetUrl) {
+        resultBox.innerText = "กรุณาวางลิงก์ก่อนครับ";
         return;
     }
 
-    resultBox.innerText = "Processing...";
-    resultBox.className = "";
-
-    const API_URL = 'https://baconbypass.online/bypass';
-    const params = new URLSearchParams({
-        url: targetUrl,
-        apikey: apiKey
-    });
+    resultBox.innerText = "กำลังประมวลผล... (ผ่าน Proxy)";
+    
+    // ใส่ Key ให้แล้วในตัวแปรนี้
+    const MY_KEY = 'Bacon-dcf735c27c3d4ce79990-1dec54ac95d70c14a2bd';
+    
+    // เพิ่ม Proxy เพื่อแก้ปัญหา CORS Error ที่คุณเจอ
+    const PROXY_URL = 'https://corsproxy.io/?';
+    const API_ENDPOINT = 'https://baconbypass.online/bypass';
+    
+    const finalUrl = `${PROXY_URL}${encodeURIComponent(`${API_ENDPOINT}?url=${targetUrl}&apikey=${MY_KEY}`)}`;
 
     try {
-        const res = await fetch(`${API_URL}?${params.toString()}`);
+        const res = await fetch(finalUrl);
         const data = await res.json();
 
         if (data.status === 'success') {
-            resultBox.innerHTML = `<strong>Result:</strong> <br> <span class="success">${data.result}</span>`;
-            console.log('Bypassed:', data.result);
+            resultBox.innerHTML = `สำเร็จ!<br><a href="${data.result}" target="_blank" class="success">${data.result}</a>`;
         } else {
-            resultBox.innerText = `Error: ${data.message || 'Something went wrong'}`;
+            resultBox.innerText = `ข้อผิดพลาด: ${data.message}`;
             resultBox.className = "error";
         }
     } catch (error) {
-        resultBox.innerText = "Network Error: ไม่สามารถเชื่อมต่อ API ได้ (ลองเช็ค CORS หรือ VPN)";
+        resultBox.innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อ (ลองเปลี่ยนลิงก์หรือเช็ค Key อีกครั้ง)";
         resultBox.className = "error";
     }
 }
