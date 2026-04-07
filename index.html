@@ -1,104 +1,129 @@
-// --- RETH SCRIPT ENGINE PRO (UPGRADED) ---
-async function searchScripts() {
-    const query = document.getElementById('script-search-input').value;
-    const resultsContainer = document.getElementById('script-results');
-    const searchBtn = document.querySelector('button[onclick="searchScripts()"]');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RETH BYPASS TESTER</title>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
 
-    if (!query) return;
+        .container {
+            background: rgba(20, 20, 20, 0.9);
+            padding: 40px;
+            border-radius: 15px;
+            border: 1px solid #333;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
 
-    // สถานะกำลังโหลด
-    if(searchBtn) searchBtn.innerHTML = '<span class="loader"></span>';
-    resultsContainer.innerHTML = '<div class="col-span-full text-center animate-pulse font-mono text-[10px] text-zinc-500 uppercase tracking-widest py-20">Accessing ScriptBlox Database...</div>';
+        h1 { font-weight: 800; letter-spacing: 2px; margin-bottom: 20px; }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #151515;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 8px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: white;
+            color: black;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover { background: #ccc; }
+
+        #result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #000;
+            border: 1px dashed #555;
+            min-height: 50px;
+            word-break: break-all;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .success { color: #00ff88; }
+        .error { color: #ff4444; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>RETH BYPASS</h1>
+    
+    <input type="text" id="apiKey" placeholder="Bacon-dcf735c27c3d4ce79990-1dec54ac95d70c14a2bd">
+    
+    <input type="text" id="targetUrl" placeholder="Paste linkvertise / key link here...">
+    
+    <button onclick="testBypass()">BYPASS NOW</button>
+
+    <div id="result-box">
+        Waiting for decryption request...
+    </div>
+</div>
+
+<script>
+async function testBypass() {
+    const apiKey = document.getElementById('apiKey').value;
+    const targetUrl = document.getElementById('targetUrl').value;
+    const resultBox = document.getElementById('result-box');
+
+    if (!apiKey || !targetUrl) {
+        resultBox.innerText = "Error: กรุณาใส่ข้อมูลให้ครบ";
+        resultBox.className = "error";
+        return;
+    }
+
+    resultBox.innerText = "Processing...";
+    resultBox.className = "";
+
+    const API_URL = 'https://baconbypass.online/bypass';
+    const params = new URLSearchParams({
+        url: targetUrl,
+        apikey: apiKey
+    });
 
     try {
-        const response = await fetch(`https://scriptblox.com/api/script/search?q=${encodeURIComponent(query)}&max=9`);
-        const data = await response.json();
-        resultsContainer.innerHTML = ''; 
+        const res = await fetch(`${API_URL}?${params.toString()}`);
+        const data = await res.json();
 
-        if (data.result && data.result.scripts && data.result.scripts.length > 0) {
-            data.result.scripts.forEach((script, index) => {
-                
-                // --- 1. แก้ไขปัญหาเรื่องรูป (Proxy Bypass) ---
-                const rawImage = script.game && script.game.image ? script.game.image : '';
-                const proxiedThumb = rawImage 
-                    ? `https://images.weserv.nl/?url=https://scriptblox.com${rawImage}&w=500&h=280&fit=cover&output=webp` 
-                    : 'https://via.placeholder.com/500x280/0a0a0a/333?text=NO+PREVIEW';
-
-                // --- 2. ระบบดึง Loadstring อัจฉริยะ (ดึงจาก View Raw) ---
-                let scriptContent = script.content || "";
-                let finalCode = "";
-
-                if (scriptContent.trim().length > 0 && scriptContent !== "undefined") {
-                    // ถ้าใน Raw เป็นแค่ URL ให้ครอบ loadstring ให้เลย
-                    if (scriptContent.startsWith("http") && !scriptContent.includes("loadstring")) {
-                        finalCode = `loadstring(game:HttpGet("${scriptContent}"))()`;
-                    } else {
-                        finalCode = scriptContent;
-                    }
-                }
-
-                const hasCode = finalCode.length > 0;
-
-                const card = `
-                    <div class="glass-card p-6 flex flex-col gap-5 border border-white/5 hover:border-white/20 transition-all duration-500 fade-in-card" style="animation-delay: ${index * 0.1}s">
-                        <div class="relative overflow-hidden rounded-2xl aspect-video bg-zinc-900 border border-white/5">
-                            <img src="${proxiedThumb}" onerror="this.src='https://via.placeholder.com/500x280/111/333?text=IMAGE+ERROR'" 
-                                 class="w-full h-full object-cover opacity-50 hover:opacity-100 transition-opacity duration-700">
-                            <div class="absolute top-4 right-4 status-pill ${script.isPatched ? 'bg-red-950/40 text-red-500 border-red-900/50' : 'is-working'} text-[8px]">
-                                ${script.isPatched ? 'PATCHED' : 'WORKING'}
-                            </div>
-                        </div>
-                        <div>
-                            <h5 class="text-lg font-black truncate tracking-tight text-white">${script.title}</h5>
-                            <p class="text-[9px] text-zinc-500 uppercase font-bold mt-1 tracking-[0.2em]">${script.game.name || 'Universal'}</p>
-                        </div>
-                        <div class="flex flex-col gap-3 border-t border-white/5 pt-5">
-                            <div class="flex justify-between items-center">
-                                <div class="text-zinc-600 font-mono text-[10px]">VIEWS: ${script.views || 0}</div>
-                                <div class="flex gap-2">
-                                    ${hasCode ? 
-                                        `<button onclick="copyToClipboard('${encodeURIComponent(finalCode)}', this)" 
-                                                class="bg-zinc-800 text-white px-4 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-zinc-700 transition border border-white/5">
-                                            Copy Code
-                                        </button>` :
-                                        `<button onclick="window.open('https://scriptblox.com/script/${script.slug}', '_blank')" 
-                                                class="bg-zinc-900/50 text-zinc-500 px-4 py-2 rounded-xl text-[9px] font-black uppercase italic border border-white/5">
-                                            No Raw
-                                        </button>`
-                                    }
-                                    <button onclick="window.open('https://scriptblox.com/script/${script.slug}', '_blank')" 
-                                            class="bg-white text-black px-4 py-2 rounded-xl text-[9px] font-black uppercase hover:bg-zinc-300 transition shadow-lg">
-                                        View
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-                resultsContainer.innerHTML += card;
-            });
+        if (data.status === 'success') {
+            resultBox.innerHTML = `<strong>Result:</strong> <br> <span class="success">${data.result}</span>`;
+            console.log('Bypassed:', data.result);
         } else {
-            resultsContainer.innerHTML = '<div class="col-span-full text-center text-zinc-500 font-mono text-[10px] uppercase py-20">Database entry not found.</div>';
+            resultBox.innerText = `Error: ${data.message || 'Something went wrong'}`;
+            resultBox.className = "error";
         }
     } catch (error) {
-        resultsContainer.innerHTML = '<div class="col-span-full text-center text-red-900 font-mono text-[10px] uppercase py-20">System Error: API connection failed.</div>';
-    } finally {
-        if(searchBtn) searchBtn.innerHTML = 'Search Database';
+        resultBox.innerText = "Network Error: ไม่สามารถเชื่อมต่อ API ได้ (ลองเช็ค CORS หรือ VPN)";
+        resultBox.className = "error";
     }
 }
+</script>
 
-// ฟังก์ชัน Copy พร้อมระบบแจ้งเตือนสีเขียว
-function copyToClipboard(encodedCode, btn) {
-    const code = decodeURIComponent(encodedCode);
-    navigator.clipboard.writeText(code).then(() => {
-        const originalText = btn.innerText;
-        btn.innerText = "COPIED!";
-        btn.style.backgroundColor = "#16a34a"; // สีเขียวตอนสำเร็จ
-        
-        setTimeout(() => {
-            btn.innerText = originalText;
-            btn.style.backgroundColor = ""; 
-        }, 2000);
-    }).catch(err => {
-        alert("Failed to copy code.");
-    });
-}
+</body>
+</html>
